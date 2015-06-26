@@ -92,7 +92,7 @@ nlist<-as.vector(t(nnMAT))
 plist<-as.vector(t(pvalueMAT))
 plotdata<-data.frame(nameslist, ESlist, nlist, plist, npilotlist, ESconlist, powerlist)
 rm(nameslist, ESlist, nlist, plist, npilotlist, ESconlist, powerlist) #clean up to save memory
-colnames(plotdata) <- c("condition", "ES", "SS", "pvalue", "N Pilot", "EffectSize", "Power")
+colnames(plotdata) <- c("condition", "ES", "SS", "pvalue", "NPilot", "EffectSize", "Power")
 results <- cbind(names,conditions,nmedian,biasES,sdES,rmseES,large_n, obspower, obspower2)
 
 #Plot effect sizes ----
@@ -100,13 +100,15 @@ png(file=paste("ESestimate_",toString(conditionselection),".png",sep=""),width=1
 plot.new()
 p1 <- eval(bquote(ggplot(data=plotdata, aes(factor(condition),ES, fill = factor(plotdata$EffectSize))))) + 
   geom_boxplot(outlier.colour=alpha("black", 0.2)) + scale_fill_manual(values=cbbPalette, name = "Effect Size") +
+  facet_grid(.~NPilot, scales="free", space="free") +
   geom_violin(alpha=0.5) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank(), axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white")) +
+  theme(text=element_text(size=16), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white"), 
+        strip.text.x = element_text(size = 16), strip.background = element_rect(fill = 'white')) +
   geom_hline(yintercept=unique(results$ES), colour="gray20", linetype="dashed",size=1) +
   stat_summary(fun.y=mean, colour="#000000", geom="point", 
                size=3,show_guide = FALSE) +
-  ylab("ES")  + xlab("Condition")  +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0, hjust=1))
+  ylab("Effect Size")  + xlab(paste("Groups = ",Kselection,", ES = ",ESselection,", Power = ",powerselection,sep=""))
 p1
 dev.off()
 
@@ -121,28 +123,33 @@ plotdata<-subset(plotdata, !is.na(plotdata$SS))
 #plot sample sizes ----
 png(file=paste("Nestimate_",toString(conditionselection),".png",sep=""),width=1800,height=1250, res = 150)
 plot.new()
-p2 <- ggplot(data=plotdata, aes(factor(condition),SS, fill = factor(plotdata$EffectSize))) + 
+p2 <- ggplot(data=plotdata, aes(factor(condition),SS, fill = factor(EffectSize))) + 
   geom_boxplot(outlier.colour=alpha("black", 0.2)) + scale_fill_manual(values=cbbPalette, name = "Effect Size") +
+  facet_grid(.~NPilot, scales="free", space="free") +
   geom_violin(alpha=0.5) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank(), axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white")) +
+  theme(text=element_text(size=16), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), 
+        panel.background = element_rect(fill = "white"), strip.text.x = element_text(size = 16), strip.background = element_rect(fill = 'white')) +
   #  geom_hline(yintercept=unique(results$ES), colour="gray20", linetype="dashed",size=1) +
   stat_summary(fun.y=mean, colour="#000000", geom="point", 
                size=3,show_guide = FALSE) +
-  ylab("ES")  + xlab("Condition")  +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0, hjust=1))
+  ylab("Sample Size")  + xlab(paste("Groups = ",Kselection,", ES = ",ESselection,", Power = ",powerselection,sep=""))
 p2
 dev.off()
- 
+
 
 #Plot observed power----
 png(file=paste("obspower_",toString(conditionselection),".png",sep=""),width=1800,height=1250, res = 150)
 plot.new()
 p3 <- ggplot(results, aes(x=names, y=obspower2, group=1, fill = factor(ESmeasure))) + 
   geom_bar(stat="identity") + scale_fill_manual(values=cbbPalette, name = "Effect Size") +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank(), axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white")) +
+  facet_grid(.~npilot, scales="free", space="free") +
+  theme(text=element_text(size=16), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white"), 
+        strip.text.x = element_text(size = 16), strip.background = element_rect(fill = 'white')) +
   geom_hline(yintercept=(100*unique(results$power)), colour="gray20", linetype="dashed") +
-  ylab("Observed Power")  + xlab("Condition")  + coord_cartesian(ylim=c(0,100)) + #set labels and max of y-axis
-  theme(axis.text.x = element_text(angle = 90, vjust = 0, hjust=1)) + scale_y_continuous(breaks=pretty_breaks(n=10))
+  ylab("Observed Power")  + xlab(paste("Groups = ",Kselection,", ES = ",ESselection,", Power = ",powerselection,sep=""))  + coord_cartesian(ylim=c(0,100)) + #set labels and max of y-axis
+  scale_y_continuous(breaks=pretty_breaks(n=10))
 p3
 dev.off()
 ####

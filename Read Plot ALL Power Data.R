@@ -134,3 +134,8 @@ p3 <- ggplot(results, aes(x=names, y=rmseES, group=1, fill = factor(ESmeasure)))
 p3
 dev.off()
 ####
+
+#check correlations between output of the simulation
+cor_results<-cbind(nmedian,nmean,biasES,sdES,rmseES,large_n, obspower, obspower2)
+cor(cor_results)
+
