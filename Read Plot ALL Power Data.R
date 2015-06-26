@@ -36,13 +36,6 @@ for(cond in conditionselection){
   pvalueMAT[cond,] <- readRDS(paste("p_",cond,".rds",sep=""))
 }
 
-#save only selected conditions to reduce memory use ----
-nMAT<-nMAT[conditionselection,]
-ESMAT<-ESMAT[conditionselection,]
-pvalueMAT<-pvalueMAT[conditionselection,]
-conditions<-conditions[conditionselection,]
-
-
 # 5. Some summaries over replications ----
 # The 'raw' simulation results are retained as well, e.g. in nMAT, which could be used for e.g. a violin plot
 large_n <- rowSums(is.na(nMAT))/R   # percentage of values with n > 100,000
