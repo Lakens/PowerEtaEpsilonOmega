@@ -5,7 +5,7 @@
 
 rm(list=ls())
 gc()
-
+i=1 #Poor coders loop - can't get the real loop to work, so run it 18 times changing this from 1:18
 #See power_script.R for the script performing the simulations
 
 K      <- c(2, 3, 4)        # number of groups in a one-way anova
@@ -20,10 +20,97 @@ colnames(conditions) <- c("ESmeasure", "K", "npilot", "ES", "alpha", "power")
 
 # The script in this file, analyses the simulation results
 setwd("C:/Users/Daniel/BitTorrent Sync/Power Casper")
+if(i == 1){
+  powerselection<-0.8
+  ESselection<-0.0099
+  Kselection<-2
+}
+if(i == 2){
+  powerselection<-0.8
+  ESselection<-0.0099
+  Kselection<-3
+}
+if(i == 3){
+  powerselection<-0.8
+  ESselection<-0.0099
+  Kselection<-4
+}
+if(i == 4){
+  powerselection<-0.9
+  ESselection<-0.0099
+  Kselection<-2
+}
+if(i == 5){
+  powerselection<-0.9
+  ESselection<-0.0099
+  Kselection<-3
+}
+if(i == 6){
+  powerselection<-0.9
+  ESselection<-0.0099
+  Kselection<-4
+}
+if(i == 7){
+  powerselection<-0.8
+  ESselection<-0.0588
+  Kselection<-2
+}
+if(i == 8){
+  powerselection<-0.8
+  ESselection<-0.0588
+  Kselection<-3
+}
+if(i == 9){
+  powerselection<-0.8
+  ESselection<-0.0588
+  Kselection<-4
+}
+if(i == 10){
+  powerselection<-0.9
+  ESselection<-0.0588
+  Kselection<-2
+}
+if(i == 11){
+  powerselection<-0.9
+  ESselection<-0.0588
+  Kselection<-3
+}
+if(i == 12){
+  powerselection<-0.9
+  ESselection<-0.0588
+  Kselection<-4
+}
+if(i == 13){
+  powerselection<-0.8
+  ESselection<-0.1379
+  Kselection<-2
+}
+if(i == 14){
+  powerselection<-0.8
+  ESselection<-0.1379
+  Kselection<-3
+}
+if(i == 15){
+  powerselection<-0.8
+  ESselection<-0.1379
+  Kselection<-4
+}
+if(i == 16){
+  powerselection<-0.9
+  ESselection<-0.1379
+  Kselection<-2
+}
+if(i == 17){
+  powerselection<-0.9
+  ESselection<-0.1379
+  Kselection<-3
+}
+if(i == 18){
+  powerselection<-0.9
+  ESselection<-0.1379
+  Kselection<-4
+}
 
-powerselection<-0.8
-ESselection<-0.0099
-Kselection<-2
 
 # Selecting subset of data (cannot load everything in memory at the same time)
 R=1000000
@@ -56,7 +143,7 @@ conditions<-conditions[conditionselection,]
 large_n <- rowSums(is.na(nMAT))/R   # percentage of values with n > 100,000
 nnMAT <- nMAT
 nnMAT[is.na(nMAT)] <- 10^6
-rm(nMAT) #clean up to save memory
+#rm(nMAT) #clean up to save memory
 nmedian <- apply(nnMAT,1,median, na.rm=TRUE)  # I prefer median over mean, since distribution is so skewed
 nQ1 <- apply(nnMAT,1,quantile, probs = .25, na.rm=TRUE)  # I prefer median over mean, since distribution is so skewed
 nQ3 <- apply(nnMAT,1,quantile, probs = .75, na.rm=TRUE)  # I prefer median over mean, since distribution is so skewed
@@ -70,6 +157,8 @@ results <- cbind(conditions,nmedian,biasES,sdES,rmseES,large_n, obspower, obspow
 print(results)
 write.table(results, "results.txt")
 # 6. Describing the results ----
+options(scipen=20)
+apply(pvalueMAT, 1, function(x) hist(x, main = paste(sum(x < .05, na.rm=TRUE)/(R-sum(is.na(x)))*100)))
 
 #load plot packages
 library(scales)
@@ -133,7 +222,7 @@ p2 <- ggplot(data=plotdata, aes(factor(condition),SS, fill = factor(EffectSize))
   #  geom_hline(yintercept=unique(results$ES), colour="gray20", linetype="dashed",size=1) +
   stat_summary(fun.y=mean, colour="#000000", geom="point", 
                size=3,show_guide = FALSE) +
-  ylab("Sample Size")  + xlab(paste("Groups = ",Kselection,", ES = ",ESselection,", Power = ",powerselection,sep=""))
+  ylab("Sample Size")  + xlab(paste("Groups = ",Kselection,", ES = ",ESselection,", Power = ",powerselection, ", ",labelmissing, sep=""))
 p2
 dev.off()
 

@@ -6,6 +6,8 @@
 rm(list=ls())
 gc()
 
+options(scipen=20) #disable scientific notation
+
 #See power_script.R for the script performing the simulations
 
 K      <- c(2, 3, 4)        # number of groups in a one-way anova
@@ -35,6 +37,33 @@ for(cond in conditionselection){
   ESMAT[cond,] <- readRDS(paste("ES_",cond,".rds",sep=""))
   pvalueMAT[cond,] <- readRDS(paste("p_",cond,".rds",sep=""))
 }
+
+# Count missing values in each condition
+
+CountNAn<-apply(nMAT,1,function(x) sum(is.na(x)))
+CountNAES<-apply(ESMAT,1,function(x) sum(is.na(x)))
+CountNAp<-apply(pvalueMAT,1,function(x) sum(is.na(x)))
+CountNA<-cbind(conditions,CountNAn,CountNAES,CountNAp)
+write.table(CountNA, "countNA.txt")
+
+#plot observed effect sizes
+ESdataplotES<-c(ESMAT[1,],ESMAT[2,],ESMAT[3,])
+ESdataplotnames<-as.factor(rep(c("eta", "epsilon", "omega"), each = 1000000))
+
+ESdataplot<-as.data.frame(cbind(ESdataplotnames,ESdataplotES))
+head(ESdataplot)
+
+ggplot(ESdataplot, aes(x = ESdataplotES, na.rm = TRUE)) + 
+  geom_histogram(binwidth = 0.01) + 
+  theme(text=element_text(size=16), panel.border = element_rect(colour = "black", fill=NA, size=1), 
+        axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white"), 
+        strip.text.x = element_text(size = 16), strip.background = element_rect(fill = 'white'))   + coord_cartesian(xlim=c(-0.1,0.3)) +
+  facet_grid(.~ESdataplotnames, scales="free", space="free")
+
+##Data unavailable, this could be run on original ES
+#ESdataplotDist<-c(subset(ESMAT[1,],ESMAT[1,]>0))
+#mean(ESdataplotDist)
+#mean(ESMAT[1,],na.rm=TRUE)
 
 # 5. Some summaries over replications ----
 # The 'raw' simulation results are retained as well, e.g. in nMAT, which could be used for e.g. a violin plot
