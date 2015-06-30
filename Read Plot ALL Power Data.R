@@ -29,13 +29,13 @@ nrconditions=162
 conditionselection<-c(1:162) #Select conditions
 
 # 4. Load the conditions you want to study ----
-nMAT <- array(NA, dim=c(nrconditions,R))
-ESMAT <- nMAT
-pvalueMAT <- nMAT 
+#nMAT <- array(NA, dim=c(nrconditions,R))
+ESMAT <- array(NA, dim=c(nrconditions,R))
+#pvalueMAT <- array(NA, dim=c(nrconditions,R)) 
 for(cond in conditionselection){
-  nMAT[cond,] <- readRDS(paste("n_",cond,".rds",sep=""))
+#  nMAT[cond,] <- readRDS(paste("n_",cond,".rds",sep=""))
   ESMAT[cond,] <- readRDS(paste("ES_",cond,".rds",sep=""))
-  pvalueMAT[cond,] <- readRDS(paste("p_",cond,".rds",sep=""))
+#  pvalueMAT[cond,] <- readRDS(paste("p_",cond,".rds",sep=""))
 }
 
 # Count missing values in each condition
@@ -49,16 +49,59 @@ write.table(CountNA, "countNA.txt")
 #plot observed effect sizes
 ESdataplotES<-c(ESMAT[1,],ESMAT[2,],ESMAT[3,])
 ESdataplotnames<-as.factor(rep(c("eta", "epsilon", "omega"), each = 1000000))
-
 ESdataplot<-as.data.frame(cbind(ESdataplotnames,ESdataplotES))
 head(ESdataplot)
 
+library(ggplot2)
 ggplot(ESdataplot, aes(x = ESdataplotES, na.rm = TRUE)) + 
   geom_histogram(binwidth = 0.01) + 
   theme(text=element_text(size=16), panel.border = element_rect(colour = "black", fill=NA, size=1), 
         axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white"), 
-        strip.text.x = element_text(size = 16), strip.background = element_rect(fill = 'white'))   + coord_cartesian(xlim=c(-0.1,0.3)) +
+        strip.text.x = element_text(size = 16), strip.background = element_rect(fill = 'white'))   + coord_cartesian(xlim=c(-0.2,0.6)) +
   facet_grid(.~ESdataplotnames, scales="free", space="free")
+
+
+#plot subset of observed effect sizes cut-off by SESOI----
+ESmeans<-apply(ESMAT,1,mean, na.rm=TRUE)
+SESOI<-0.02
+ESMAT <- ifelse(ESMAT<SESOI,NA,ESMAT)
+ESmeansCUT<-apply(ESMAT,1,mean, na.rm=TRUE)
+ESmeansTOTAL<-as.data.frame(cbind(ESmeans,ESmeansCUT))
+names<-paste("Groups =", conditions$K, "Pilot n =", conditions$npilot, "ES =", conditions$ES, "Power =", conditions$power, conditions$ESmeasure) #Create name labels
+ESmeansTOTAL$names<-names
+ESmeansTOTAL$Dif<-ESmeansTOTAL$ESmeansCUT-ESmeansTOTAL$ESmeans
+
+
+
+library(scales)
+library(ggplot2)
+library(gridExtra)
+#Plot ALL observed differences in ES----
+png(file=paste("obsDifESALL.png",sep=""),width=9000,height=3000, res = 300)
+plot.new()
+p3 <- ggplot(ESmeansTOTAL, aes(x=names, y=Dif)) + 
+  geom_bar(stat="identity") +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank(), axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white")) +
+  ylab("Observed Power")  + xlab("Condition")  + coord_cartesian(ylim=c(0,0.1)) + #set labels and max of y-axis
+  theme(axis.text.x = element_text(angle = 90, vjust = 0, hjust=1))
+p3
+dev.off()
+####
+####
+
+ESdataplotES<-c(ESMAT[1,],ESMAT[2,],ESMAT[3,])
+ESdataplotnames<-as.factor(rep(c("eta", "epsilon", "omega"), each = 1000000))
+ESdataplot<-as.data.frame(cbind(ESdataplotnames,ESdataplotES))
+
+library(ggplot2)
+ggplot(ESdataplot, aes(x = ESdataplotES, na.rm = TRUE)) + 
+  geom_histogram(binwidth = 0.01) + 
+  theme(text=element_text(size=16), panel.border = element_rect(colour = "black", fill=NA, size=1), 
+        axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.background = element_rect(fill = "white"), 
+        strip.text.x = element_text(size = 16), strip.background = element_rect(fill = 'white'))   + coord_cartesian(xlim=c(-0.2,0.6)) +
+  facet_grid(ESdataplotnames~.)
+
+
 
 ##Data unavailable, this could be run on original ES
 #ESdataplotDist<-c(subset(ESMAT[1,],ESMAT[1,]>0))
